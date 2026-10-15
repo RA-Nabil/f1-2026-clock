@@ -24,7 +24,7 @@ No build step, no dependencies, no backend. Open `index.html` and it works.
 ## Quick start
 
 ```bash
-git clone https://github.com/<your-username>/f1-2026-clock.git
+git clone https://github.com/RA-Nabil/f1-2026-clock.git
 cd f1-2026-clock
 
 # Option 1: just open the file
