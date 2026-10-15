@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>F1 2026 Clock</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#f6f6f4;--fg:#111;--mut:#8a8a86;--line:#e0e0dc;--red:#e10600;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0b0c;--fg:#f2f2f0;--mut:#77777a;--line:#232326;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b0b0c;--fg:#f2f2f0;--mut:#77777a;--line:#232326;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,-apple-system,"Helvetica Neue",Arial,sans-serif}
+main{max-width:560px;margin:0 auto;padding:40px 24px 56px}
+.top{display:flex;justify-content:space-between;align-items:center;color:var(--mut);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.live{display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.6)}}
+.ring{position:relative;width:min(78vw,300px);aspect-ratio:1;margin:44px auto 36px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:2}
+.track{stroke:var(--line)}
+.prog{stroke:var(--red);stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.round{font-size:12px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase}
+.name{font-size:22px;font-weight:600;margin:6px 0 2px;letter-spacing:-.01em}
+.circ{font-size:13px;color:var(--mut)}
+.units{display:flex;justify-content:center;gap:clamp(14px,5vw,28px);font-variant-numeric:tabular-nums}
+.u{text-align:center;min-width:56px}
+.n{font-size:clamp(36px,11vw,52px);font-weight:300;letter-spacing:-.03em;display:inline-block;line-height:1.1}
+.n.tick{animation:tick .35s ease}
+@keyframes tick{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.l{font-size:10px;letter-spacing:.2em;color:var(--mut);text-transform:uppercase;margin-top:4px}
+.when{text-align:center;color:var(--mut);font-size:13px;margin-top:28px;line-height:1.6}
+.when b{color:var(--fg);font-weight:500}
+ul{list-style:none;margin:48px 0 0;padding:0;border-top:1px solid var(--line)}
+li{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-size:14px;opacity:0;animation:in .5s ease forwards}
+@keyframes in{to{opacity:1}}
+li span:last-child{color:var(--mut);font-variant-numeric:tabular-nums}
+li.next span:first-child{font-weight:600}
+li.next{box-shadow:inset 2px 0 0 var(--red);padding-left:12px}
+button{background:none;border:0;color:inherit;font:inherit;cursor:pointer;letter-spacing:inherit;text-transform:inherit;padding:0}
+.tabs{display:flex;gap:28px;margin-top:32px;border-bottom:1px solid var(--line)}
+.tabs button{padding:0 0 12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);position:relative}
+.tabs button.on{color:var(--fg)}
+.tabs button.on:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--red);animation:grow .3s ease}
+@keyframes grow{from{transform:scaleX(0)}to{transform:none}}
+.hh{display:flex;justify-content:space-between;align-items:baseline;margin:32px 0 8px;font-size:13px;color:var(--mut)}
+.hh a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--red)}
+.hl{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none;opacity:0;animation:in .5s ease forwards;transition:padding-left .25s}
+.hl:hover{padding-left:8px}
+.play{width:34px;height:34px;border:1px solid var(--line);border-radius:50%;flex:none;position:relative;transition:background .25s,border-color .25s}
+.play:after{content:"";position:absolute;left:13px;top:10px;border-left:10px solid var(--fg);border-top:6px solid transparent;border-bottom:6px solid transparent}
+.hl:hover .play{background:var(--red);border-color:var(--red)}
+.hl:hover .play:after{border-left-color:#fff}
+.ht{flex:1;font-size:14px;line-height:1.35}
+.hk{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.note{margin-top:28px;font-size:12px;color:var(--mut);line-height:1.6}
+.tabs{overflow-x:auto;gap:22px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tabs button{white-space:nowrap}
+.sh{margin:36px 0 8px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+#list{margin-top:8px}
+.ss{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);font-size:14px}
+.ss .tm{color:var(--mut);font-variant-numeric:tabular-nums;font-size:13px;margin-left:auto}
+.ss.done{opacity:.4}
+.pill{font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
+.pill.nx{border-color:var(--red);color:var(--red)}
+.pill.lv{background:var(--red);border-color:var(--red);color:#fff;animation:pulse 1.2s infinite}
+.seg{display:flex;gap:6px;margin:28px 0 12px}
+.seg button{font-size:12px;padding:6px 14px;border:1px solid var(--line);border-radius:99px;color:var(--mut);transition:all .2s}
+.seg button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.row{display:grid;grid-template-columns:28px 1fr auto;column-gap:10px;align-items:baseline;padding:11px 0 10px;border-bottom:1px solid var(--line);font-size:14px;opacity:0;animation:in .4s ease forwards}
+.row .p{color:var(--mut);font-size:12px;font-variant-numeric:tabular-nums}
+.row small{color:var(--mut);margin-left:8px;font-size:12px}
+.row .pt{font-variant-numeric:tabular-nums;font-weight:500}
+.row .bar{grid-column:2/4;display:block;height:2px;margin-top:9px;background:var(--c);width:var(--w);border-radius:2px;animation:bw .9s ease}
+@keyframes bw{from{width:0}}
+.card{border-left:3px solid var(--c);padding:4px 0 4px 14px;margin:22px 0;opacity:0;animation:in .5s ease forwards}
+.card h3{margin:0;font-size:16px;font-weight:600;display:flex;justify-content:space-between;gap:12px}
+.card h3 span{color:var(--mut);font-weight:400;font-size:13px;white-space:nowrap}
+.card .s{color:var(--mut);font-size:12px;margin:3px 0 6px}
+.card p{margin:0;font-size:13px;line-height:1.55}
+.card{display:flex;gap:14px;align-items:flex-start}
+.cb{flex:1;min-width:0}
+.badge{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;letter-spacing:.04em;color:#fff;background:var(--c);transition:transform .3s}
+.badge.d{background:transparent;color:var(--fg);border:2px solid var(--c);font-weight:600}
+.card:hover .badge{transform:scale(1.08)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.chips{display:flex;gap:8px;overflow-x:auto;margin-top:24px;padding-bottom:2px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;font-size:12px;padding:6px 12px;border:1px solid var(--line);border-radius:99px;color:var(--mut);transition:all .2s}
+.chip.on{border-color:var(--red);color:var(--fg)}
+.act{display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.btn{font-size:12px;padding:8px 14px;border:1px solid var(--line);border-radius:99px;color:var(--fg);text-decoration:none;transition:border-color .2s}
+.btn:hover,.btn[aria-pressed="true"]{border-color:var(--red)}
+.set{display:flex;gap:14px;justify-content:center;margin-top:16px;flex-wrap:wrap;font-size:12px;color:var(--mut)}
+.set select,#q{font:inherit;font-size:13px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px;margin-left:6px}
+#q{width:100%;margin:24px 0 0;padding:10px 12px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--fg);color:var(--bg);font-size:13px;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:all .3s;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.plus{font-size:11px;color:var(--mut);text-decoration:none;border-bottom:1px solid var(--line)}.plus:hover{color:var(--red)}
+.rr{padding:13px 0;border-bottom:1px solid var(--line);opacity:0;animation:in .4s ease forwards}
+.rr b{font-weight:600}.rr .a{display:flex;justify-content:space-between;gap:10px;font-size:14px}.rr .a span:last-child{color:var(--mut);font-size:12px;white-space:nowrap}
+.rr .b{color:var(--mut);font-size:12px;margin-top:3px}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+.logo{font-weight:800;font-size:24px;letter-spacing:-.05em;display:inline-flex;align-items:center}
+.logo i{width:4px;height:24px;background:var(--red);margin-left:7px;transform:skewX(-20deg);animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 12px var(--red)}}
+.sub{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.flag{height:10px;width:60px;background:conic-gradient(var(--fg) 25%,transparent 0 50%,var(--fg) 0 75%,transparent 0) 0 0/10px 10px;opacity:.8;animation:slide 3s linear infinite}
+.brand .flag{margin-left:auto}
+@keyframes slide{to{background-position:20px 0}}
+html{background-image:radial-gradient(ellipse 80% 40% at 50% 0,rgba(225,6,0,.07),transparent 70%);background-repeat:no-repeat}
+.halo{position:absolute;inset:-14%;background:radial-gradient(circle,rgba(225,6,0,.17),transparent 62%);animation:breathe 4s ease-in-out infinite;pointer-events:none}
+@keyframes breathe{50%{opacity:.4;transform:scale(.94)}}
+.spin{position:absolute;inset:-9px;border:1px dashed var(--line);border-radius:50%;animation:spin 50s linear infinite;pointer-events:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.prog{filter:drop-shadow(0 0 3px rgba(225,6,0,.6))}
+.units{gap:clamp(8px,3vw,16px)}
+.u{border:1px solid var(--line);border-radius:14px;padding:12px 6px 10px;background:color-mix(in srgb,var(--fg) 3%,transparent)}
+.u:last-child .n{color:var(--red)}
+section:not([hidden]){animation:up .45s ease}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+li:hover,.row:hover,.rr:hover,.ss:hover{background:color-mix(in srgb,var(--fg) 3%,transparent)}
+.card:hover{box-shadow:-4px 0 16px -8px var(--c)}
+.row:nth-child(1) .p{color:#d4af37;font-weight:700}.row:nth-child(2) .p{color:#a8a9ad;font-weight:700}.row:nth-child(3) .p{color:#cd7f32;font-weight:700}
+.foot{margin-top:56px;padding-top:22px;border-top:1px solid var(--line);font-size:11px;color:var(--mut);line-height:1.7;text-align:center}
+.foot .flag{margin:0 auto 14px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <header class="brand"><span class="logo">F1<i></i></span><span class="sub">2026 Season Clock</span><div class="flag" aria-hidden="true"></div></header>
+  <div class="top">
+    <div class="live"><i class="dot"></i><span id="clock">--:--:--</span></div>
+    <button id="theme" aria-label="Toggle theme">Theme</button>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="Sections"><button class="on" role="tab" aria-selected="true" data-v="sched">Schedule</button><button role="tab" aria-selected="false" data-v="res">Results</button><button role="tab" aria-selected="false" data-v="stand">Standings</button><button role="tab" aria-selected="false" data-v="teams">Teams</button><button role="tab" aria-selected="false" data-v="drv">Drivers</button><button role="tab" aria-selected="false" data-v="high">Highlights</button></nav>
+  <section id="v-sched">
+  <div class="chips" id="chips" role="group" aria-label="Pick a race"></div>
+  <div class="ring">
+    <div class="halo"></div><div class="spin"></div>
+    <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="48"/><circle class="prog" id="prog" cx="50" cy="50" r="48" stroke-dasharray="301.6" stroke-dashoffset="301.6"/></svg>
+    <div class="center">
+      <div class="round" id="round"></div>
+      <div class="name" id="name"></div>
+      <div class="circ" id="circ"></div>
+    </div>
+  </div>
+
+  <div class="units" id="units"></div>
+  <div class="when" id="when"></div>
+  <div class="act"><a id="gcal" class="btn" target="_blank" rel="noopener" href="#">Add race to calendar</a><button class="btn" id="rem" aria-pressed="false">Remind me</button></div>
+  <div class="set"><label>Time <select id="tzs"><option value="auto">My time</option><option value="track">Track time</option><option value="utc">UTC</option></select></label><label>Clock <select id="hrs"><option value="auto">Auto</option><option value="12">12 h</option><option value="24">24 h</option></select></label></div>
+  <div id="toast" role="status"></div>
+  <div class="sh">Race weekend</div><div id="sess"></div>
+  <div class="sh">Calendar</div><ul id="list"></ul>
+  </section>
+
+  <section id="v-stand" hidden>
+    <div class="sh" style="margin-top:28px">Title clinch calculator · Austin</div>
+    <div class="set" style="margin:8px 0"><label>Antonelli <select id="ta"></select></label><label>Russell <select id="tr"></select></label><label>Hamilton <select id="th"></select></label></div>
+    <p class="note" id="tres" aria-live="polite" style="margin:6px 0 0"></p>
+    <div class="seg"><button class="on" data-s="d">Drivers</button><button data-s="t">Teams</button></div>
+    <p class="note" id="stn" style="margin:0 0 4px"></p><div id="st"></div>
+    <p class="note">After round 17 of 23 · Singapore GP</p>
+  </section>
+  <section id="v-res" hidden><div id="rs"></div></section>
+  <section id="v-teams" hidden><div id="tm"></div></section>
+  <section id="v-drv" hidden><input id="q" type="search" placeholder="Search driver or team" aria-label="Search drivers" autocomplete="off"><div id="dv"></div></section>
+
+  <section id="v-high" hidden>
+    <div class="hh"><span>Latest · Singapore GP</span><a href="https://www.youtube.com/@F1" target="_blank" rel="noopener">Official F1 channel ↗</a></div>
+    <div id="hl"></div>
+    <p class="note">Each card opens the matching video search on YouTube. Add a video <code>id</code> to any item in the HL list to link straight to it.</p>
+  </section>
+<footer class="foot"><div class="flag" aria-hidden="true"></div>Unofficial fan project, not affiliated with Formula 1, the FIA or any team.<br>Standings and results as of the 2026 Singapore GP. Session times follow the official F1 schedules, so check formula1.com for late changes.</footer>
+</main>
+
+<script>
+// Race start times in UTC (approximate; edit freely).
+var RACES=[
+ {r:18,n:"United States",k:"Austin",f:"🇺🇸",c:"Austin (COTA)",z:"America/Chicago",len:5.513,laps:56,t:"2026-10-25T19:00:00Z",s:[["Practice 1","2026-10-23T17:30:00Z"],["Practice 2","2026-10-23T21:00:00Z"],["Practice 3","2026-10-24T17:30:00Z"],["Qualifying","2026-10-24T21:00:00Z"]]},
+ {r:19,n:"Mexico City",k:"Mexico",f:"🇲🇽",c:"Hermanos Rodríguez",z:"America/Mexico_City",len:4.304,laps:71,t:"2026-11-01T20:00:00Z",s:[["Practice 1","2026-10-30T18:30:00Z"],["Practice 2","2026-10-30T22:00:00Z"],["Practice 3","2026-10-31T17:30:00Z"],["Qualifying","2026-10-31T21:00:00Z"]]},
+ {r:20,n:"São Paulo",k:"Brazil",f:"🇧🇷",c:"Interlagos",z:"America/Sao_Paulo",len:4.309,laps:71,t:"2026-11-08T17:00:00Z",s:[["Practice 1","2026-11-06T15:30:00Z"],["Practice 2","2026-11-06T19:00:00Z"],["Practice 3","2026-11-07T14:30:00Z"],["Qualifying","2026-11-07T18:00:00Z"]]},
+ {r:21,n:"Las Vegas",k:"Vegas",f:"🇺🇸",c:"Las Vegas Strip",z:"America/Los_Angeles",len:6.201,laps:50,t:"2026-11-22T04:00:00Z",s:[["Practice 1","2026-11-20T00:30:00Z"],["Practice 2","2026-11-20T04:00:00Z"],["Practice 3","2026-11-21T00:30:00Z"],["Qualifying","2026-11-21T04:00:00Z"]]},
+ {r:22,n:"Qatar",k:"Qatar",f:"🇶🇦",c:"Lusail",z:"Asia/Qatar",len:5.419,laps:57,t:"2026-11-29T16:00:00Z",s:[["Practice 1","2026-11-27T13:00:00Z"],["Practice 2","2026-11-27T17:00:00Z"],["Practice 3","2026-11-28T14:30:00Z"],["Qualifying","2026-11-28T18:00:00Z"]]},
+ {r:23,n:"Abu Dhabi",k:"Abu Dhabi",f:"🇦🇪",c:"Yas Marina",z:"Asia/Dubai",len:5.281,laps:58,t:"2026-12-06T13:00:00Z",s:[["Practice 1","2026-12-04T09:30:00Z"],["Practice 2","2026-12-04T13:00:00Z"],["Practice 3","2026-12-05T10:30:00Z"],["Qualifying","2026-12-05T14:00:00Z"]]}
+];
+var $=function(id){return document.getElementById(id)};
+var SEL=-1,PREF={tz:"auto",h:"auto"};
+try{PREF=Object.assign(PREF,JSON.parse(localStorage.getItem("f1pref")||"{}"))}catch(e){}
+var pad=function(x){return String(x).padStart(2,"0")};
+var fmt=function(d,r){var o={weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"};
+  if(PREF.tz==="utc")o.timeZone="UTC";else if(PREF.tz==="track"&&r&&r.z)o.timeZone=r.z;
+  if(PREF.h==="12")o.hour12=true;else if(PREF.h==="24")o.hour12=false;
+  return d.toLocaleString([],o)};
+var tzLabel=function(r){return PREF.tz==="utc"?"UTC":PREF.tz==="track"&&r?r.z.replace("_"," "):Intl.DateTimeFormat().resolvedOptions().timeZone};
+var LBL=["Days","Hours","Min","Sec"],last=[];
+$("units").innerHTML=LBL.map(function(l){return '<div class="u"><div class="n">00</div><div class="l">'+l+'</div></div>'}).join("");
+var ns=document.querySelectorAll(".n");
+function renderList(){
+  $("list").innerHTML=RACES.map(function(x,i){return '<li data-i="'+i+'" style="animation-delay:'+(i*70)+'ms"><span>'+x.f+" "+x.n+'</span><span>'+fmt(new Date(x.t),x)+'</span></li>'}).join("");
+}
+function renderChips(){
+  var h='<button class="chip'+(SEL<0?' on':'')+'" data-i="-1">Next</button>';
+  RACES.forEach(function(x,i){h+='<button class="chip'+(SEL===i?' on':'')+'" data-i="'+i+'">'+x.f+" "+x.k+'</button>'});
+  $("chips").innerHTML=h;
+  document.querySelectorAll(".chip").forEach(function(b){b.onclick=function(){SEL=+b.dataset.i;sync()}});
+}
+function gcal(r,name,iso,h){
+  var a=new Date(iso),b=new Date(+a+h*36e5),f=function(d){return d.toISOString().replace(/[-:]|\.\d{3}/g,"")};
+  return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("F1 "+r.n+" GP - "+name)+"&dates="+f(a)+"/"+f(b)+"&location="+encodeURIComponent(r.c);
+}
+function sync(){last=[];tick();renderSess();renderChips();var r=nextRace();if(r)$("gcal").href=gcal(r,"Race",r.t,2)}
+$("tzs").value=PREF.tz;$("hrs").value=PREF.h;
+function setPref(){
+  PREF.tz=$("tzs").value;PREF.h=$("hrs").value;
+  try{localStorage.setItem("f1pref",JSON.stringify(PREF))}catch(e){}
+  last=[];renderList();renderSess();tick();
+}
+$("tzs").onchange=setPref;$("hrs").onchange=setPref;
+renderList();renderChips();
+var REM=false,DONE={};
+function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},7000)}
+function checkRem(){
+  if(!REM)return;var now=Date.now();
+  RACES.forEach(function(r){r.s.concat([["Race",r.t]]).forEach(function(x){
+    var d=new Date(x[1]).getTime(),k=r.k+x[0];
+    if(!DONE[k]&&d>now&&d-now<=9e5){DONE[k]=1;var m=r.n+" GP · "+x[0]+" starts in under 15 minutes";toast(m);
+      try{if(window.Notification&&Notification.permission==="granted")new Notification("F1 reminder",{body:m})}catch(e){}}
+  })});
+}
+setInterval(checkRem,20000);
+$("rem").onclick=function(){
+  REM=!REM;$("rem").setAttribute("aria-pressed",REM);$("rem").textContent=REM?"Reminders on":"Remind me";
+  if(REM){toast("Reminders on: you'll get an alert 15 minutes before each session while this page is open.");
+    try{if(window.Notification&&Notification.permission==="default")Notification.requestPermission()}catch(e){}}
+};
+
+function tick(){
+  var now=new Date();
+  $("clock").textContent=now.toLocaleTimeString([],{hour12:false});
+  var nx=RACES.findIndex(function(x){return new Date(x.t)>now});var idx=(SEL>=0&&new Date(RACES[SEL].t)>now)?SEL:nx;
+  document.querySelectorAll("li").forEach(function(li,i){li.classList.toggle("next",i===idx)});
+  if(idx<0){$("round").textContent="2026";$("name").textContent="Season complete";$("circ").textContent="See you next year";$("when").textContent="";return}
+  var race=RACES[idx],t=new Date(race.t),diff=t-now;
+  var prev=idx>0?new Date(RACES[idx-1].t):new Date(t-14*864e5);
+  var p=Math.min(1,Math.max(0,(now-prev)/(t-prev)));
+  $("prog").style.strokeDashoffset=301.6*(1-p);
+  $("round").textContent=race.f+" Round "+race.r;
+  $("name").textContent=race.n;
+  $("circ").textContent=race.c;
+  var s=Math.floor(diff/1000);
+  var v=[Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60];
+  v.forEach(function(x,i){
+    if(last[i]!==x){ns[i].textContent=pad(x);ns[i].classList.remove("tick");void ns[i].offsetWidth;ns[i].classList.add("tick")}
+  });
+  last=v;
+  $("when").innerHTML="Lights out <b>"+fmt(t,race)+"</b><br>"+tzLabel(race)+" · "+race.len+" km · "+race.laps+" laps";
+}
+tick();setInterval(tick,1000);
+
+var HL=[
+ {k:"Race",t:"Race Highlights: 2026 Singapore Grand Prix"},
+ {k:"Race",t:"2026 Singapore Grand Prix: Verstappen crosses the line to take his first Singapore GP win"},
+ {k:"Race",t:"2026 Singapore Grand Prix: Verstappen fends off Leclerc to keep the lead on the race start"},
+ {k:"Qualifying",t:"Qualifying Highlights: 2026 Singapore Grand Prix"},
+ {k:"Qualifying",t:"2026 Singapore GP Qualifying: Verstappen crosses the line to seal pole position"},
+ {k:"Sprint",t:"Sprint Highlights: 2026 Singapore Grand Prix"},
+ {k:"Sprint",t:"Sprint Qualifying Highlights: 2026 Singapore Grand Prix"},
+ {k:"Practice",t:"FP1 Highlights: 2026 Singapore Grand Prix"}
+];
+function renderHL(){
+  $("hl").innerHTML=HL.map(function(h,i){
+    var u=h.id?"https://www.youtube.com/watch?v="+h.id:"https://www.youtube.com/results?search_query="+encodeURIComponent("Formula 1 "+h.t);
+    return '<a class="hl" href="'+u+'" target="_blank" rel="noopener" style="animation-delay:'+(i*70)+'ms"><i class="play"></i><span class="ht">'+h.t+'</span><span class="hk">'+h.k+'</span></a>';
+  }).join("");
+}
+renderHL();
+var TEAMS=[
+["mer","Mercedes","Brackley, UK","Mercedes","#27c4b0",578,11,"Leads the constructors' title with 11 wins in 17 rounds."],
+["fer","Ferrari","Maranello, Italy","Ferrari","#e8002d",444,2,"Second, 134 points back. Leclerc took second in Singapore."],
+["mcl","McLaren","Woking, UK","Mercedes","#ff8000",339,2,"Reigning champions, third and only 7 points clear of Red Bull."],
+["rbr","Red Bull","Milton Keynes, UK","Red Bull Ford","#3671c6",332,2,"Back-to-back Verstappen wins have them closing on McLaren."],
+["rb","Racing Bulls","Faenza, Italy","Red Bull Ford","#6692ff",100,0,"Fifth overall, with Lawson the main points scorer."],
+["alp","Alpine","Enstone, UK","Mercedes","#ff87bc",68,0,"Sixth, with Gasly leading the team's scoring."],
+["haas","Haas","Kannapolis, USA","Ferrari","#b6babd",30,0,"Seventh, led by Bearman on 23 points."],
+["audi","Audi","Hinwil, Switzerland","Audi","#f50537",23,0,"Audi's first season as a works team. Hulkenberg was eighth in Singapore."],
+["wil","Williams","Grove, UK","Mercedes","#64c4ff",12,0,"Ninth, with Sainz and Albon sharing 12 points."],
+["ast","Aston Martin","Silverstone, UK","Honda","#229971",7,0,"Honda-powered. Alonso and Stroll have 7 points between them."],
+["cad","Cadillac","Charlotte, USA","Ferrari","#9a9aa0",0,0,"New for 2026. Bottas and Perez are still chasing a first point."]
+];
+var DRV=[
+["Kimi Antonelli","ITA","mer",8,340,"Just 20 and the championship leader. He could clinch the title in Austin."],
+["George Russell","GBR","mer",3,238,"Second, 102 behind his team-mate after a ninth place in Singapore."],
+["Lewis Hamilton","GBR","fer",1,229,"Seven-time champion and the top non-Mercedes driver, despite a rough Singapore."],
+["Max Verstappen","NED","rbr",2,221,"Back-to-back wins, including a first in Singapore. 73 career victories."],
+["Charles Leclerc","MON","fer",1,215,"Ferrari's Monegasque ran second behind Verstappen in Singapore."],
+["Lando Norris","GBR","mcl",2,201,"The reigning world champion, fourth in Singapore."],
+["Oscar Piastri","AUS","mcl",0,138,"McLaren's Australian, sixth in the standings."],
+["Isack Hadjar","FRA","rbr",0,97,"Scored the last point in Singapore after starting from the pit lane."],
+["Liam Lawson","NZL","rb",0,75,"Racing Bulls' top scorer, seventh in Singapore."],
+["Pierre Gasly","FRA","alp",0,41,"Alpine's leading points scorer."],
+["Arvid Lindblad","GBR","rb",0,38,"Young British driver at Racing Bulls."],
+["Franco Colapinto","ARG","alp",0,27,"Alpine's Argentine, retired in Singapore."],
+["Oliver Bearman","GBR","haas",0,23,"Haas' top scorer."],
+["Nico Hulkenberg","GER","audi",0,13,"Audi's veteran, eighth in Singapore."],
+["Gabriel Bortoleto","BRA","audi",0,10,"Audi's Brazilian, retired in Singapore."],
+["Esteban Ocon","FRA","haas",0,7,"Haas' French driver."],
+["Fernando Alonso","ESP","ast",0,7,"Two-time champion at Aston Martin."],
+["Carlos Sainz","ESP","wil",0,7,"Williams' Spaniard."],
+["Alex Albon","THA","wil",0,5,"Williams' Thai-British driver."],
+["Yuki Tsunoda","JPN","rb",0,1,"Has one point on the board."],
+["Lance Stroll","CAN","ast",0,0,"Retired in Singapore."],
+["Valtteri Bottas","FIN","cad",0,0,"Cadillac's veteran in the team's first season."],
+["Sergio Perez","MEX","cad",0,0,"Cadillac's Mexican driver, with a home race coming up."]
+];
+var TC={mer:"MER",fer:"FER",mcl:"MCL",rbr:"RBR",rb:"RB",alp:"ALP",haas:"HAAS",audi:"AUDI",wil:"WIL",ast:"AMR",cad:"CAD"};
+var DC=["ANT","RUS","HAM","VER","LEC","NOR","PIA","HAD","LAW","GAS","LIN","COL","BEA","HUL","BOR","OCO","ALO","SAI","ALB","TSU","STR","BOT","PER"];
+var RES=[
+["Australia","🇦🇺","Mar 8","Russell","Antonelli","Leclerc","Verstappen"],
+["China","🇨🇳","Mar 15","Antonelli","Russell","Hamilton","Antonelli"],
+["Japan","🇯🇵","Mar 29","Antonelli","Piastri","Leclerc","Antonelli"],
+["Miami","🇺🇸","May 3","Antonelli","Norris","Piastri","Norris"],
+["Canada","🇨🇦","May 24","Antonelli","Hamilton","Verstappen","Antonelli"],
+["Monaco","🇲🇨","Jun 7","Antonelli","Hamilton","Hadjar","Antonelli"],
+["Barcelona","🇪🇸","Jun 14","Hamilton","Russell","Norris","Hamilton"],
+["Austria","🇦🇹","Jun 28","Russell","Verstappen","Antonelli","Antonelli"],
+["Britain","🇬🇧","Jul 5","Leclerc","Russell","Hamilton","Antonelli"],
+["Belgium","🇧🇪","Jul 19","Antonelli","Leclerc","Verstappen","Norris"],
+["Hungary","🇭🇺","Jul 26","Norris","Verstappen","Antonelli","Leclerc"],
+["Netherlands","🇳🇱","Aug 23","Norris","Antonelli","Russell","Leclerc"],
+["Italy","🇮🇹","Sep 6","Antonelli","Russell","Verstappen","Antonelli"],
+["Spain (Madrid)","🇪🇸","Sep 13","Antonelli","Verstappen","Norris","Russell"],
+["Azerbaijan","🇦🇿","Sep 26","Russell","Verstappen","Hadjar","Russell"],
+["Bahrain GP in Malaysia","🇲🇾","Oct 4","Verstappen","Antonelli","Hamilton","Verstappen"],
+["Singapore","🇸🇬","Oct 11","Verstappen","Leclerc","Antonelli","Leclerc"]
+];
+var FLAG={ITA:"🇮🇹",GBR:"🇬🇧",NED:"🇳🇱",MON:"🇲🇨",AUS:"🇦🇺",FRA:"🇫🇷",NZL:"🇳🇿",ARG:"🇦🇷",GER:"🇩🇪",BRA:"🇧🇷",ESP:"🇪🇸",THA:"🇹🇭",JPN:"🇯🇵",CAN:"🇨🇦",FIN:"🇫🇮",MEX:"🇲🇽"};
+var DX=[[12,14,15],[63,8,13],[44,6,16],[3,9,13],[16,5,14],[1,5,13],[81,2,11],[6,2,11],[30,0,12],[10,0,9],[41,0,11],[43,0,8],[87,0,4],[27,0,4],[5,0,3],[31,0,3],[14,0,3],[55,0,4],[23,0,2],["-",0,1],[18,0,0],[77,0,0],[11,0,0]];
+function renderRes(){
+  $("rs").innerHTML=RES.slice().reverse().map(function(x,i){var n=RES.length-i;
+    return '<div class="rr" style="animation-delay:'+(i*40)+'ms"><div class="a"><span>'+x[1]+" R"+n+" · "+x[0]+'</span><span>'+x[2]+'</span></div><div class="a"><span>🏆 <b>'+x[3]+'</b></span></div><div class="b">2nd '+x[4]+" · 3rd "+x[5]+" · Fastest lap "+x[6]+'</div></div>';
+  }).join("");
+}
+var PTS=[25,18,15,12,10,8,6,4,2,1,0];
+function calcTitle(){
+  var pa=PTS[+$("ta").value],pr=PTS[+$("tr").value],ph=PTS[+$("th").value];
+  var lr=340+pa-238-pr,lh=340+pa-229-ph,left=125,ok=lr>=left&&lh>=left;
+  $("tres").innerHTML="Lead over Russell <b>"+lr+"</b> · over Hamilton <b>"+lh+"</b> · points left after Austin <b>"+left+"</b><br>"+(ok?"<b>Antonelli would be champion in Austin.</b>":"Not clinched yet. He needs a lead of "+left+"+ over both.")+" Assumes no sprints are left and the rest of the field is further back.";
+}
+["ta","tr","th"].forEach(function(id,k){var el=$(id),h="";for(var i=0;i<11;i++)h+='<option value="'+i+'">'+(i<10?"P"+(i+1)+" ("+PTS[i]+")":"P11+ / DNF")+'</option>';el.innerHTML=h;el.value=[0,1,2][k];el.onchange=calcTitle});
+calcTitle();
+var TM={};TEAMS.forEach(function(t){TM[t[0]]=t});
+function nextRace(){var n=new Date(),i=(SEL>=0&&new Date(RACES[SEL].t)>n)?SEL:RACES.findIndex(function(x){return new Date(x.t)>n});return RACES[i]}
+function renderSess(){
+  var r=nextRace(),el=$("sess");
+  if(!r){el.innerHTML="";return}
+  var h='<p class="note" style="margin:0 0 4px">'+r.f+" "+r.n+' GP · '+r.c+'</p>';
+  if(!r.s){el.innerHTML=h+'<p class="note">Session times for this round are not added yet.</p>';return}
+  var all=r.s.concat([["Race",r.t]]),now=new Date(),nxt=false;
+  h+=all.map(function(x){
+    var d=new Date(x[1]),end=new Date(+d+(x[0]==="Race"?2:1)*36e5),c="",p="";
+    if(now>end){c=" done";p='<span class="pill">Done</span>'}
+    else if(now>=d){p='<span class="pill lv">Live</span>'}
+    else if(!nxt){nxt=true;p='<span class="pill nx">Next</span>'}
+    return '<div class="ss'+c+'"><span>'+x[0]+'</span>'+p+'<a class="plus" target="_blank" rel="noopener" aria-label="Add '+x[0]+' to Google Calendar" href="'+gcal(r,x[0],x[1],x[0]==="Race"?2:1)+'">+ Cal</a><span class="tm">'+fmt(d,r)+'</span></div>';
+  }).join("");
+  if(!all.some(function(x){return /sprint/i.test(x[0])}))h+='<p class="note">No sprint this weekend.</p>';
+  el.innerHTML=h;
+}
+renderSess();setInterval(renderSess,30000);setTimeout(function(){var r=nextRace();if(r)$("gcal").href=gcal(r,"Race",r.t,2)},0);
+function renderStand(m){
+  var rows=m==="t"?TEAMS.map(function(t){return[t[1],"",t[4],t[5]]}):DRV.map(function(d){return[d[0],TM[d[2]][1],TM[d[2]][4],d[4]]});
+  var max=rows[0][3];
+  $("stn").textContent=m==="t"?"Mercedes lead Ferrari by 134 points.":"Antonelli leads Russell by 102 points.";
+  $("st").innerHTML=rows.map(function(r,i){
+    return '<div class="row" style="--c:'+r[2]+';--w:'+(r[3]/max*100)+'%;animation-delay:'+(i*35)+'ms"><span class="p">'+(i+1)+'</span><span>'+r[0]+'<small>'+r[1]+'</small></span><span class="pt">'+r[3]+'</span><i class="bar"></i></div>';
+  }).join("");
+}
+function renderTeams(){
+  $("tm").innerHTML=TEAMS.map(function(t,i){
+    var ds=DRV.filter(function(d){return d[2]===t[0]}).map(function(d){return d[0]}).join(" · ");
+    return '<div class="card" style="--c:'+t[4]+';animation-delay:'+(i*50)+'ms"><i class="badge">'+TC[t[0]]+'</i><div class="cb"><h3>'+t[1]+'<span>P'+(i+1)+' · '+t[5]+' pts</span></h3><div class="s">'+t[2]+' · '+t[3]+' power · '+t[6]+' win'+(t[6]===1?'':'s')+'</div><p>'+t[7]+'</p><p class="s" style="margin:8px 0 0">'+ds+'</p></div></div>';
+  }).join("");
+}
+function renderDrv(){
+  var q=($("q").value||"").toLowerCase().trim(),h="";
+  DRV.forEach(function(d,i){
+    var t=TM[d[2]],x=DX[i];
+    if(q&&(d[0]+" "+t[1]+" "+d[1]).toLowerCase().indexOf(q)<0)return;
+    h+='<div class="card" style="--c:'+t[4]+';animation-delay:'+(i*35)+'ms"><i class="badge d">'+DC[i]+'</i><div class="cb"><h3>'+d[0]+'<span>P'+(i+1)+' · '+d[4]+' pts</span></h3><div class="s">'+(FLAG[d[1]]||"")+" "+d[1]+' · '+t[1]+' · #'+x[0]+'</div><div class="s" style="margin-top:0">'+d[3]+' win'+(d[3]===1?'':'s')+' · '+x[1]+' podium'+(x[1]===1?'':'s')+' · '+x[2]+' points finishes</div><p>'+d[5]+'</p></div></div>';
+  });
+  $("dv").innerHTML=h||'<p class="note">No driver matches that search.</p>';
+}
+$("q").oninput=renderDrv;
+document.querySelectorAll(".seg button").forEach(function(b){b.onclick=function(){
+  document.querySelectorAll(".seg button").forEach(function(x){x.classList.toggle("on",x===b)});renderStand(b.dataset.s)}});
+var RENDER={stand:function(){renderStand(document.querySelector(".seg .on").dataset.s)},teams:renderTeams,res:renderRes,drv:renderDrv,high:renderHL};
+var tabs=document.querySelectorAll(".tabs button");
+tabs.forEach(function(b){b.onclick=function(){
+  tabs.forEach(function(x){x.classList.toggle("on",x===b);x.setAttribute("aria-selected",x===b)});
+  ["sched","res","stand","teams","drv","high"].forEach(function(k){$("v-"+k).hidden=b.dataset.v!==k});
+  if(RENDER[b.dataset.v])RENDER[b.dataset.v]();
+}});
+
+var root=document.documentElement;
+$("theme").onclick=function(){
+  var dark=root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+  root.dataset.theme=dark?"light":"dark";
+};
+</script>
+</body>
+</html>
